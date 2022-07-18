@@ -1,0 +1,30 @@
+- import_tasks: configure_etcd.yml
+  when: etcd is defined and etcd
+  tags:
+  - configure_etcd
+
+- block:
+  - import_tasks: configure_docker.yml
+    # when: container_runtime == 'docker' or (is_mutil_master and proxy_master is defined and proxy_master)
+
+  - import_tasks: configure_containerd.yml
+    when: container_runtime == 'containerd' and (node is defined and node)
+  
+  when: (node is defined and node) or (is_mutil_master and proxy_master is defined and proxy_master)
+  tags:
+  - configure_container_runtime
+
+- import_tasks: configure_master.yml
+  when: master is defined and master
+  tags:
+  - configure_master
+
+- import_tasks: configure_node.yml
+  when: node is defined and node
+  tags:
+  - configure_node
+
+- import_tasks: configure_ha_master.yml
+  when: is_mutil_master and proxy_master is defined and proxy_master
+  tags:
+  - configure_ha_master

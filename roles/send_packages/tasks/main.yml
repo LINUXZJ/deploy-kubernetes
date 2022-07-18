@@ -1,0 +1,29 @@
+- import_tasks: send_etcd.yml
+  when: etcd is defined and etcd
+  tags:
+  - send_etcd
+
+- import_tasks: send_kubernetes.yml
+  when: (master is defined and master) or (node is defined and node)
+  tags:
+  - send_kubernetes
+
+- block:
+  - import_tasks: send_docker.yml
+    # when: container_runtime == 'docker' or (is_mutil_master and proxy_master is defined and proxy_master)
+  
+  - import_tasks: send_containerd.yml
+    when: container_runtime == 'containerd' and (node is defined and node)
+  
+  when: (node is defined and node) or (is_mutil_master and proxy_master is defined and proxy_master)
+  tags:
+  - send_container_runtime
+
+- import_tasks: send_cni.yml
+  when: node is defined and node
+  tags:
+  - send_cni
+
+- import_tasks: clear_package.yml
+  tags:
+  - clear_package

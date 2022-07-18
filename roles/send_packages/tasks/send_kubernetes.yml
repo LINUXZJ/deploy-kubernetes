@@ -1,0 +1,36 @@
+- block:
+  - name: 分发 master 需要的二进制程序文件
+    copy:
+      src: '{{ item }}'
+      dest: '{{ install_dir }}/kubernetes/bin'
+      mode: '0755'
+    with_fileglob: 
+    - '{{ kubernetes_bin_tmp_path }}/kube-apiserver'
+    - '{{ kubernetes_bin_tmp_path }}/kube-controller-manager'
+    - '{{ kubernetes_bin_tmp_path }}/kubectl'
+    - '{{ kubernetes_bin_tmp_path }}/kube-scheduler'
+
+  - name: 将 kubectl 软链接到 PATH 下
+    file:
+      src: '{{ install_dir }}/kubernetes/bin/kubectl'
+      dest: /usr/local/bin/kubectl
+      state: link
+  
+  - name: 为 kubectl 设置命令补全
+    failed_when: no
+    shell: |
+      kubectl completion bash > /usr/share/bash-completion/completions/kubectl \
+        && . /usr/share/bash-completion/completions/kubectl
+    when: have_network is defined and have_network
+    
+  when: master is defined and master
+
+- name: 分发 node 需要的二进制程序文件
+  copy:
+    src: '{{ item }}'
+    dest: '{{ install_dir }}/kubernetes/bin'
+    mode: '0755'
+  with_fileglob: 
+  - '{{ kubernetes_bin_tmp_path }}/kubelet'
+  - '{{ kubernetes_bin_tmp_path }}/kube-proxy'
+  when: node is defined and node

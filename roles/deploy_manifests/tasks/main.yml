@@ -1,0 +1,57 @@
+- block:
+  - name: 设置变量
+    set_fact:
+      rbac_filename: kubernetes_user_rbac.yml
+
+  - name: kubernetes 用户授权 - 分发权限 manifests 到 master 节点 (1/2)
+    template:
+      src: '{{ rbac_filename }}'
+      dest: /tmp/
+
+  - name: kubernetes 用户授权 - 执行授权操作 (2/2)
+    shell: kubectl apply -f /tmp/{{ rbac_filename }}
+  
+  - name: 设置各节点在集群中的角色
+    shell: |
+      until [ `kubectl get node -o name | wc -l` -eq {{ node_list | length }} ];do
+        sleep 5;
+      done;
+
+      {%- for host in groups["all"] -%}
+        {%- if "node" in hostvars[host] and hostvars[host].node -%}
+          kubectl label nodes {{ hostvars[host].hostname }} node-role.kubernetes.io/{% if "master" in hostvars[host] and hostvars[host].master %}master{% else %}node{% endif %}= --overwrite;
+        {%- endif -%}
+      {%- endfor -%}
+  when: ansible_host == master_list[0]
+  tags:
+  - deploy_flannel
+  - deploy_coredns
+  - deploy_ingress
+  - deploy_dashboard
+
+- import_tasks: deploy_flannel.yml
+  when: cni_type is defined and cni_type == 'flannel'
+  tags:
+  - deploy_flannel
+
+- import_tasks: deploy_calico.yml
+  when: cni_type is defined and cni_type == 'calico'
+  tags:
+  - deploy_calico
+
+- import_tasks: deploy_coredns.yml
+  tags:
+  - deploy_coredns
+
+- import_tasks: deploy_metrics_server.yml
+  tags:
+  - deploy_metrics_server
+
+- import_tasks: deploy_ingress.yml
+  when: ingress_controller_type is defined
+  tags:
+  - deploy_ingress
+
+- import_tasks: deploy_dashboard.yml
+  tags:
+  - deploy_dashboard

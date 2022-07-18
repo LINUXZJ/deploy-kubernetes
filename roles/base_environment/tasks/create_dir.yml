@@ -1,0 +1,69 @@
+- name: 创建 kubernetes 程序目录
+  file:
+    path: '{{ item.0 }}/{{ item.1 }}'
+    state: directory
+  with_nested:
+    - ['{{install_dir}}/kubernetes']
+    - ['bin', 'conf', 'ssl', 'log']
+  when: (master is defined and master) or (node is defined and node)
+
+- name: 在 master 节点创建 ETCD 证书目录
+  file:
+    path: '{{install_dir}}/etcd/ssl'
+    state: directory
+
+- name: 创建 ETCD 程序目录
+  file:
+    path: '{{ item.0 }}/{{ item.1 }}'
+    state: directory
+  with_nested:
+    - ['{{install_dir}}/etcd']
+    - ['bin', 'data', 'conf', 'ssl']
+  when: etcd is defined and etcd
+
+- block:
+  - name: 创建 Docker 程序目录
+    file:
+      path: '{{ item.0 }}/{{ item.1 }}'
+      state: directory
+    with_nested:
+      - ['{{install_dir}}/docker']
+      - ['bin', 'data', 'conf']
+    # when: container_runtime == 'docker' or (proxy_master is defined and proxy_master)
+
+  - name: 创建 Containerd 程序目录
+    file:
+      path: '{{ item.0 }}/{{ item.1 }}'
+      state: directory
+    with_nested:
+      - ['{{install_dir}}/containerd']
+      - ['bin', 'data', 'conf', 'run']
+    when: container_runtime == 'containerd' and (node is defined and node)
+  when: (node is defined and node) or (proxy_master is defined and proxy_master)
+
+- name: 创建 CNI 插件安装目录
+  file:
+    path: '{{ item.0 }}/{{ item.1 }}'
+    state: directory
+  with_nested:
+    - ['{{install_dir}}/cni']
+    - ['bin']
+  when: node is defined and node
+
+- name: 创建 Nginx 程序目录
+  file:
+    path: '{{ item.0 }}/{{ item.1 }}'
+    state: directory
+  with_nested:
+    - ['{{install_dir}}/nginx']
+    - ['conf/conf.d', 'log']
+  when: proxy_master is defined and proxy_master
+
+- name: 创建 Keepalived 程序目录
+  file:
+    path: '{{ item.0 }}/{{ item.1 }}'
+    state: directory
+  with_nested:
+    - ['{{install_dir}}/keepalived']
+    - ['conf']
+  when: proxy_master is defined and proxy_master

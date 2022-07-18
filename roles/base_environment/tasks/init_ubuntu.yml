@@ -1,0 +1,39 @@
+- name: 安装 ntpdate
+  apt:
+    name: 
+    - ntpdate
+    - bash-completion
+  when: have_network
+
+- name: 替换 apt 源为阿里云
+  copy:
+    src: 'ubuntu{{ ansible_distribution_major_version }}-repo/sources.list'
+    dest: /etc/apt/sources.list
+  when: have_network and replace_repo
+
+- name: 关闭 Swap - swap off -a (1/2)
+  shell: |
+    /sbin/swapoff -a
+
+- name: 关闭 Swap - /etc/fstab (2/2)
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*\sswap\s+\s+.*)$'
+    replace: '# \1'
+
+- block:
+  - name: 为 Ubuntu 18 创建 /etc/rc.local
+    lineinfile:
+      path: /etc/rc.local
+      firstmatch: yes
+      insertbefore: '^'
+      line: '#!/bin/bash'
+      create: yes
+      mode: '0755'
+  
+  - name: 修改 /etc/resolv.conf 的链接文件
+    file:
+      src: /run/systemd/resolve/resolv.conf
+      path: /etc/resolv.conf
+      state: link
+  when: ansible_distribution_major_version == '18'

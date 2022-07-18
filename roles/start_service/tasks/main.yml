@@ -1,0 +1,43 @@
+- import_tasks: start_etcd.yml
+  when: etcd is defined and etcd
+  tags:
+  - start_etcd
+
+- block:
+  - import_tasks: start_docker.yml
+    # when: container_runtime == 'docker'
+
+  - import_tasks: start_containerd.yml
+    when: container_runtime == 'containerd'
+
+  when: node is defined and node
+  tags:
+  - start_container_runtime
+
+- import_tasks: start_master.yml
+  when: master is defined and master
+  tags:
+  - start_master
+
+- block:
+  - import_tasks: start_docker.yml
+  
+  - import_tasks: start_master_proxy.yml
+  when: is_mutil_master and proxy_master is defined and proxy_master
+  tags:
+  - start_master_proxy
+
+- import_tasks: enable_tls_bootstrapping.yml
+  when: ansible_host == master_list[0]
+  tags:
+  - enable_tls_bootstrapping
+
+- import_tasks: start_node.yml
+  when: node is defined and node
+  tags:
+  - start_node
+
+- import_tasks: certificate_approve.yml
+  when: ansible_host == master_list[0]
+  tags:
+  - certificate_approve

@@ -1,0 +1,19 @@
+- name: 将 cfssl 可执行文件移动添加到 PATH 路径下
+  run_once: yes
+  connection: local
+  copy:
+    src: '{{ package_dir }}/cfssl/{{ item.src }}'
+    dest: '{{ item.dest }}'
+    mode: '0755'
+  with_items:
+  - {'src': 'cfssl_linux-amd64', 'dest': '{{ cfssl_bin }}'}
+  - {'src': 'cfssl-certinfo_linux-amd64', 'dest': '{{ cfssl_certinfo_bin }}'}
+  - {'src': 'cfssljson_linux-amd64', 'dest': '{{ cfssl_json_bin }}'}
+
+- import_tasks: gen_etcd_cert.yml
+  tags:
+  - gen_etcd_cert
+  
+- import_tasks: gen_kubernetes_cert.yml
+  tags:
+  - gen_kubernetes_cert

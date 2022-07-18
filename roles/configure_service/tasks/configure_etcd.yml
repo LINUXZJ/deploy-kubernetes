@@ -1,0 +1,9 @@
+- name: 渲染 ETCD 配置文件
+  template:
+    src: etcd/conf/etcd.conf
+    dest: '{{ install_dir }}/etcd/conf/etcd.conf'
+
+- name: 渲染 ETCD Service unit 文件
+  template:
+    src: etcd/systemd/etcd.service
+    dest: '{% if ansible_distribution == "CentOS" %}/usr{% endif %}/lib/systemd/system/etcd.service'

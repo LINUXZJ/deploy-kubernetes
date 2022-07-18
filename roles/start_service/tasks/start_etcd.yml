@@ -1,0 +1,6 @@
+- name: 启动 ETCD 服务
+  systemd:
+    name: etcd
+    state: started
+    enabled: yes
+    daemon_reload: yes
