@@ -17,8 +17,6 @@
 - [x] 支持最新 Kubernetes 1.20.x 版本的一键部署；
 
 
-> 如有疑惑或建议可提 ISSUE 或在 [此链接](https://www.zze.xyz/archives/kubernetes-deploy-binary-mutil-master.html) 下留言。
->
 > 这里我在 CentOS 7.8、 Ubuntu 18.04 上进行了测试，完全能够一键跑完。
 >
 > 要注意的是，如果你使用的是 Ubuntu，那么需要先在所有节点上装上 python 环境，因为 Ansible 依赖被控端的 python，而 Ubuntu 默认是没有的（CentOS 默认有），执行 `sudo apt install python-minimal` 安装即可。
@@ -87,17 +85,18 @@ $ sudo apt-get install ansible
 ```bash
 $ vim /etc/ansible/ansible.cfg
 # 取消此行注释
-host_key_checking = False
+host_key_checking = False  
 ```
 ## 结构说明
 安装完成后 clone 当前 Project：
 ```bash
 # 如果网络不好可以下载 release 版本更快
-$ git clone https://github.com/zze326/kubernetes-deploy-ansible.git
+$ git clone https://github.com/LINUXZJ/deploy-kubernetes.git 
+$ git clone -b release https://github.com/LINUXZJ/deploy-kubernetes.git    #-b 分支
 ```
 克隆完成后目录结构如下：
 ```bash
-$ ls kubernetes-deploy-ansible/
+$ ls deploy-kubernetes
 hosts.yml  manifests  README.md  roles  run.yml
 ```
 下面对上述几个文件做一下说明：
@@ -116,9 +115,9 @@ all:
     # SSH 用户名
     ansible_user: root
     # SSH 密码
-    ansible_ssh_pass: root1234
+    ansible_ssh_pass: Your passwd
     # 用户的 sudo 提权密码
-    ansible_sudo_pass: root1234
+    ansible_sudo_pass: Your passwd
     # 标识是否是多 Master 架构
     is_mutil_master: yes
     # 多 Master 架构时会使用 Nginx 来四层代理多个 Master 中的 APIServer，Nginx 四层代理可能有多个，这多个代理之间使用 Keepalived 提供 VIP 进行高可用，该字段就是用来设置该 VIP
@@ -160,7 +159,7 @@ all:
     # kubelet 用来发送签发证书请求用的 Token，可通过 head -c 16 /dev/urandom | od -An -t x | tr -d ' ' 生成
     kubelet_bootstrap_token: 8fba966b6e3b5d182960a30f6cb94428
     # Kubernetes 使用的 pause 镜像，无需解释
-    pause_image: registry.cn-shenzhen.aliyuncs.com/zze/pause:3.2
+    pause_image: registry.cn-hangzhou.aliyuncs.com/zj_k8s/pause:3.5
     # Dashboard Web UI 使用的端口 30000-32767 之间
     dashboard_port: 30001
     # 保存 Dashboard 访问 Token 的文件名，在当前 hosts.yml 同级目录下
@@ -212,8 +211,8 @@ all:
 all:
   vars:
     ansible_user: root
-    ansible_ssh_pass: root1234
-    ansible_sudo_pass: root1234
+    ansible_ssh_pass: Your passwd
+    ansible_sudo_pass: Your passwd
     is_mutil_master: yes
     virtual_ip: 10.0.1.200
     virtual_ip_device: eth0
@@ -226,7 +225,7 @@ all:
     replace_repo: yes
     docker_registry_mirrors: https://7hsct51i.mirror.aliyuncs.com
     kubelet_bootstrap_token: 8fba966b6e3b5d182960a30f6cb94428
-    pause_image: registry.cn-shenzhen.aliyuncs.com/zze/pause:3.2
+    pause_image: registry.cn-hangzhou.aliyuncs.com/zj_k8s/pause:3.5
     dashboard_port: 30001
     dashboard_token_file: dashboard_token.txt
     ingress_controller_type: haproxy
@@ -284,8 +283,8 @@ PLAY RECAP *********************************************************************
 all:
   vars:
     ansible_user: root
-    ansible_ssh_pass: root1234
-    ansible_sudo_pass: root1234
+    ansible_ssh_pass: Your passwd
+    ansible_sudo_pass: Your passwd
     ...
   hosts:
     ...
@@ -384,7 +383,7 @@ test-54fdd84b68-j9zwq   1/1     Running   0          77s   10.244.0.2   k8s-node
 test-54fdd84b68-w64jv   1/1     Running   0          77s   10.244.2.4   k8s-master1   <none>           <none>
 test-54fdd84b68-zptw8   1/1     Running   0          77s   10.244.1.3   k8s-master2   <none>           <none>
 
-$ kubectl exec -it test-54fdd84b68-j9zwq -- sh
+$ kubectl exec -it test-54fll84b68-j9zwq -- sh
 / # ping 10.244.2.4
 PING 10.244.2.4 (10.244.2.4): 56 data bytes
 64 bytes from 10.244.2.4: seq=0 ttl=62 time=1.334 ms
