@@ -85,7 +85,7 @@ $ sudo apt-get install ansible
 ```bash
 $ vim /etc/ansible/ansible.cfg
 # 取消此行注释
-host_key_checking = False  
+host_key_checking = False  # uncomment this to disable SSH key host checking
 ```
 ## 结构说明
 安装完成后 clone 当前 Project：
